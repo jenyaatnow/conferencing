@@ -2,10 +2,8 @@ package com.bravewave.conferencing.conf
 
 import akka.actor.typed.{ActorSystem, SpawnProtocol}
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.Flow
+import com.bravewave.conferencing.conf.ws.ConferenceSessionMap
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -13,33 +11,24 @@ import scala.util.{Failure, Success}
 
 object WebServer extends App {
 
+  private implicit val spawnSystem = ActorSystem(SpawnProtocol(), "spawn")
 
-  implicit val spawnSystem = ActorSystem(SpawnProtocol(), "spawn")
-  implicit val executionContext = spawnSystem.executionContext
-
-  def helloRoute: Route = pathEndOrSingleSlash {
-    complete("Welcome to messaging service")
-  }
-
-  def affirmRoute = path("affirm") {
-    handleWebSocketMessages(
-      Flow[Message].collect {
-        case TextMessage.Strict(text) => TextMessage("You said " + text)
-      }
-    )
-  }
-
-  def messageRoute =
-    pathPrefix("message" / Segment) { trainerId =>
-      // await on the webflow materialization pending session actor creation by the spawnSystem
-      Await.ready(ChatSessionMap.findOrCreate(trainerId).webflow(), Duration.Inf).value.get match {
-        case Success(value) => handleWebSocketMessages(value)
-        case Failure(exception) =>
-          println(exception.getMessage)
-          failWith(exception)
+  private def messageRoute =
+    headerValueByName("user-id") { userId =>
+      pathPrefix("conference" / Segment) { conferenceId =>
+        // await on the webflow materialization pending session actor creation by the spawnSystem
+        Await.ready(ConferenceSessionMap.findOrCreate(conferenceId).webflow(userId), Duration.Inf).value.get match {
+          case Success(flow) => handleWebSocketMessages(flow)
+          case Failure(exception) =>
+            spawnSystem.log.error(exception.getMessage)
+            failWith(exception)
+        }
       }
     }
 
-  Http().newServerAt("localhost", 8080).bind(helloRoute ~ affirmRoute ~ messageRoute)
-  println("Server running...")
+  // todo move to conf
+  private val host = "localhost"
+  private val port = 8080
+  Http().newServerAt(host, port).bind(messageRoute)
+  spawnSystem.log.info(s"Server started at $host:$port")
 }

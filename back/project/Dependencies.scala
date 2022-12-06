@@ -7,6 +7,7 @@ object Dependencies {
   private val AkkaHttpVersion = "10.4.0"
   private val CatsVersion = "2.9.0"
   private val LogbackVersion = "1.4.5"
+  private val CirceVersion = "0.14.3"
 
 
   val Akka = Seq(
@@ -22,4 +23,10 @@ object Dependencies {
   val Logging = Seq(
     "ch.qos.logback" % "logback-classic" % LogbackVersion,
   )
+
+  val Circe = Seq(
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-literal",
+    "io.circe" %% "circe-generic-extras",
+  ).map(_ % CirceVersion)
 }

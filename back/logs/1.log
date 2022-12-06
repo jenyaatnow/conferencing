@@ -1,0 +1,51 @@
+2022-12-06 22:36:27,189  INFO [                main] akka.actor.typed.ActorSystem                       : Server started at localhost:8080
+2022-12-06 22:36:34,217 DEBUG [default-dispatcher-6] akka.actor.typed.ActorSystem                       : Spawning 'conference-session:1'
+2022-12-06 22:36:34,521 DEBUG [default-dispatcher-9] c.b.conferencing.conf.ConferenceEngineActor$       : User 'hank' connected to conference '1'
+2022-12-06 22:36:43,741 DEBUG [efault-dispatcher-11] c.b.conferencing.conf.ConferenceEngineActor$       : User 'jello' connected to conference '1'
+2022-12-06 22:37:12,371 DEBUG [efault-dispatcher-10] c.b.conferencing.conf.ConferenceEngineActor$       : User 'hank' disconnected from '1'
+2022-12-06 22:37:22,072 DEBUG [default-dispatcher-3] c.b.conferencing.conf.ConferenceEngineActor$       : User 'hank' connected to conference '1'
+2022-12-06 22:37:36,371 DEBUG [default-dispatcher-7] c.b.conferencing.conf.ConferenceEngineActor$       : User 'tank' connected to conference '1'
+2022-12-06 22:38:01,785 DEBUG [efault-dispatcher-12] akka.actor.typed.ActorSystem                       : Spawning 'conference-session:2'
+2022-12-06 22:38:01,799 DEBUG [efault-dispatcher-10] c.b.conferencing.conf.ConferenceEngineActor$       : User 'forest' connected to conference '2'
+2022-12-06 22:38:27,150 DEBUG [efault-dispatcher-12] c.b.conferencing.conf.ConferenceEngineActor$       : User 'king' connected to conference '2'
+2022-12-06 22:38:36,538 ERROR [efault-dispatcher-10] akka.actor.SupervisorStrategy                      : akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+java.lang.RuntimeException: akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+	at com.bravewave.conferencing.conf.ConferenceEngineActor$.$anonfun$receive$1(ConferenceEngineActor.scala:35)
+	at akka.actor.typed.internal.BehaviorImpl$ReceiveBehavior.receive(BehaviorImpl.scala:136)
+	at akka.actor.typed.Behavior$.interpret(Behavior.scala:274)
+	at akka.actor.typed.Behavior$.interpretMessage(Behavior.scala:230)
+	at akka.actor.typed.internal.adapter.ActorAdapter.handleMessage(ActorAdapter.scala:131)
+	at akka.actor.typed.internal.adapter.ActorAdapter.aroundReceive(ActorAdapter.scala:107)
+	at akka.actor.ActorCell.receiveMessage(ActorCell.scala:579)
+	at akka.actor.ActorCell.invoke(ActorCell.scala:547)
+	at akka.dispatch.Mailbox.processMailbox(Mailbox.scala:270)
+	at akka.dispatch.Mailbox.run(Mailbox.scala:231)
+	at akka.dispatch.Mailbox.exec(Mailbox.scala:243)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1182)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1655)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1622)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:165)
+Caused by: akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+2022-12-06 22:38:36,582  INFO [efault-dispatcher-10] akka.actor.LocalActorRef                           : Message [com.bravewave.conferencing.conf.package$CoreChatEvents$Failed] to Actor[akka://spawn/user/conference-session:1#953290860] was not delivered. [1] dead letters encountered. If this is not an expected behavior then Actor[akka://spawn/user/conference-session:1#953290860] may have terminated unexpectedly. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2022-12-06 22:38:36,587  INFO [efault-dispatcher-10] akka.actor.LocalActorRef                           : Message [com.bravewave.conferencing.conf.package$CoreChatEvents$Failed] to Actor[akka://spawn/user/conference-session:1#953290860] was not delivered. [2] dead letters encountered. If this is not an expected behavior then Actor[akka://spawn/user/conference-session:1#953290860] may have terminated unexpectedly. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
+2022-12-06 22:39:27,312 ERROR [efault-dispatcher-10] akka.actor.SupervisorStrategy                      : akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+java.lang.RuntimeException: akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+	at com.bravewave.conferencing.conf.ConferenceEngineActor$.$anonfun$receive$1(ConferenceEngineActor.scala:35)
+	at akka.actor.typed.internal.BehaviorImpl$ReceiveBehavior.receive(BehaviorImpl.scala:136)
+	at akka.actor.typed.Behavior$.interpret(Behavior.scala:274)
+	at akka.actor.typed.Behavior$.interpretMessage(Behavior.scala:230)
+	at akka.actor.typed.internal.adapter.ActorAdapter.handleMessage(ActorAdapter.scala:131)
+	at akka.actor.typed.internal.adapter.ActorAdapter.aroundReceive(ActorAdapter.scala:107)
+	at akka.actor.ActorCell.receiveMessage(ActorCell.scala:579)
+	at akka.actor.ActorCell.invoke(ActorCell.scala:547)
+	at akka.dispatch.Mailbox.processMailbox(Mailbox.scala:270)
+	at akka.dispatch.Mailbox.run(Mailbox.scala:231)
+	at akka.dispatch.Mailbox.exec(Mailbox.scala:243)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:373)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1182)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1655)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1622)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:165)
+Caused by: akka.http.impl.engine.HttpIdleTimeoutException: HTTP idle-timeout encountered, no bytes passed in the last 60 seconds. This is configurable by akka.http.[server|client].idle-timeout.
+2022-12-06 22:39:27,315  INFO [default-dispatcher-7] akka.actor.LocalActorRef                           : Message [com.bravewave.conferencing.conf.package$CoreChatEvents$Failed] to Actor[akka://spawn/user/conference-session:2#294096217] was not delivered. [3] dead letters encountered. If this is not an expected behavior then Actor[akka://spawn/user/conference-session:2#294096217] may have terminated unexpectedly. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.

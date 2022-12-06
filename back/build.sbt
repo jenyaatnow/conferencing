@@ -19,7 +19,7 @@ lazy val root = (project in file("."))
 lazy val `conf-engine` = project
   .settings(
     idePackagePrefix := Some("com.bravewave.conferencing.conf"),
-    libraryDependencies ++= Akka ++ Cats ++ Logging,
+    libraryDependencies ++= Akka ++ Cats ++ Logging ++ Circe,
   )
 
 lazy val `plugins-engine` = project
