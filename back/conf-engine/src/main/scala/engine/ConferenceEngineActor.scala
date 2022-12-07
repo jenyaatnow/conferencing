@@ -17,18 +17,21 @@ object ConferenceEngineActor {
     msg match {
       case Connected(newUserContext) =>
         // todo forbid users to connect multiple times
-        // todo new user should receive basic conference data (members, chat messages etc)
-        ctx.log.debug(s"User '${newUserContext.userId}' connected to conference '$conferenceId'")
-        userContexts.foreach(_.websocket ! UserConnected(newUserContext.userId))
-        receive(conferenceId, userContexts + newUserContext)
+        val newUserId = newUserContext.userId
+        ctx.log.debug(s"User '$newUserId' connected to conference '$conferenceId'")
+
+        val newUserContexts = userContexts + newUserContext
+        newUserContexts !> (newUserId, ConferenceDetails(newUserContexts.map(_.userId)))
+        newUserContexts !- (newUserId, UserConnected(newUserId))
+        receive(conferenceId, newUserContexts)
 
       case Disconnected(userId) =>
-        ctx.log.debug(s"User '$userId' disconnected from conference '$conferenceId'")
-        userContexts.find(_.userId == userId).foreach(_.websocket ! Complete)
-        val survivors = userContexts.filterNot(_.userId == userId)
-        survivors.foreach(_.websocket ! UserDisconnected(userId))
         // todo should clean session storage on last user
-        receive(conferenceId, survivors)
+        ctx.log.debug(s"User '$userId' disconnected from conference '$conferenceId'")
+
+        userContexts !> (userId, Complete)
+        userContexts !- (userId, UserDisconnected(userId))
+        receive(conferenceId, userContexts - userId)
 
       case UserMessage(msg, phone) =>
         println(s"Sending message $msg to phone $phone")

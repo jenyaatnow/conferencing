@@ -25,5 +25,6 @@ object WebSocketActor {
     sealed trait WebSocketResponse extends WebSocketsMessage
     final case class UserConnected(userId: UserId) extends WebSocketResponse
     final case class UserDisconnected(userId: UserId) extends WebSocketResponse
+    final case class ConferenceDetails(connectedUsers: Set[UserId]) extends WebSocketResponse
   }
 }

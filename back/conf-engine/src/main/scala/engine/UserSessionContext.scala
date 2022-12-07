@@ -7,4 +7,6 @@ import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol.WebSocketsMess
 final case class UserSessionContext(
   userId: UserId,
   websocket: ActorRef[WebSocketsMessage],
-)
+) {
+  def !(msg: WebSocketsMessage): Unit = websocket ! msg
+}
