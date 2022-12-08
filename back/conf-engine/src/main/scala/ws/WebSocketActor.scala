@@ -5,6 +5,7 @@ import akka.actor.typed.ActorRef
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import akka.stream.typed.scaladsl.ActorSource
+import com.bravewave.conferencing.conf.shared.UserId
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 
 object WebSocketActor {

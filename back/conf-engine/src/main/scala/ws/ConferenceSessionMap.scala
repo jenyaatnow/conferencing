@@ -2,6 +2,7 @@ package com.bravewave.conferencing.conf
 package ws
 
 import akka.actor.typed.{ActorSystem, SpawnProtocol}
+import com.bravewave.conferencing.conf.shared.ConferenceId
 
 object ConferenceSessionMap {
 

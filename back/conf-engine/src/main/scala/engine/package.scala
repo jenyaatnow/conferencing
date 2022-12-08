@@ -1,5 +1,6 @@
 package com.bravewave.conferencing.conf
 
+import com.bravewave.conferencing.conf.shared.UserId
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol.WebSocketsMessage
 
 package object engine {

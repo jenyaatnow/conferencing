@@ -11,6 +11,7 @@ import akka.stream.typed.scaladsl.ActorSink
 import akka.util.Timeout
 import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
+import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import io.circe.Encoder
 import io.circe.generic.extras.Configuration
@@ -23,7 +24,7 @@ import scala.concurrent.duration._
 
 class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem[SpawnProtocol.Command]) {
   private val conferenceSessionName = s"conference-session:$conferenceId"
-  system.log.debug(s"Spawning '$conferenceSessionName'")
+  system.log.info(s"Spawning '$conferenceSessionName'")
 
   private implicit val timeout: Timeout = Timeout(3.seconds)
   private implicit val ec = system.dispatchers.lookup(DispatcherSelector.default())

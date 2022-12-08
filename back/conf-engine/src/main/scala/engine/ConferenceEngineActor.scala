@@ -3,8 +3,12 @@ package engine
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import com.bravewave.conferencing.chatgrpc.client.ChatEngineClient
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
+import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
+
+import scala.util.Success
 
 object ConferenceEngineActor {
   // todo spawn chat-actor
@@ -18,7 +22,15 @@ object ConferenceEngineActor {
       case Connected(newUserContext) =>
         // todo forbid users to connect multiple times
         val newUserId = newUserContext.userId
-        ctx.log.debug(s"User '$newUserId' connected to conference '$conferenceId'")
+        ctx.log.info(s"User '$newUserId' connected to conference '$conferenceId'")
+
+        implicit val system = ctx.system
+        implicit val ec = system.executionContext
+        val chatEngineClient = new ChatEngineClient()
+        chatEngineClient.spawnChat(conferenceId).onComplete {
+          case util.Failure(exception) => println(s"Grpc error: ${exception.getMessage}")
+          case Success(value) => println(s"Spawned new chat '${value.chatId}")
+        }
 
         val newUserContexts = userContexts + newUserContext
         newUserContexts !> (newUserId, ConferenceDetails(newUserContexts.map(_.userId)))
@@ -27,7 +39,7 @@ object ConferenceEngineActor {
 
       case Disconnected(userId) =>
         // todo should clean session storage on last user
-        ctx.log.debug(s"User '$userId' disconnected from conference '$conferenceId'")
+        ctx.log.info(s"User '$userId' disconnected from conference '$conferenceId'")
 
         userContexts !> (userId, Complete)
         userContexts !- (userId, UserDisconnected(userId))

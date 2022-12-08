@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "com.bravewave.conferencing.chatgrpc.gen";
+
+package conferencing.chat;
+
+message SpawnChatRequest {
+  string conferenceId = 1;
+}
+
+message SpawnChatResponse {
+  string chatId = 1;
+}
+
+service ChatEngineService {
+  rpc SpawnChat(SpawnChatRequest) returns (SpawnChatResponse) {}
+}
