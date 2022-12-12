@@ -9,12 +9,14 @@ import akka.stream.FlowShape
 import akka.stream.scaladsl._
 import akka.stream.typed.scaladsl.ActorSink
 import akka.util.Timeout
-import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
+import cats.implicits.catsSyntaxOptionId
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
+import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
 import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import io.circe.Encoder
 import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.auto._
 import io.circe.generic.extras.semiauto._
 import io.circe.syntax._
 
@@ -73,7 +75,8 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
         ))
 
         // materialize the Source we supplied in the argument
-        val materializedActorSource = builder.materializedValue.map(ref => Connected(UserSessionContext(userId, ref)))
+        val materializedActorSource =
+          builder.materializedValue.map(ref => Connected(UserSessionContext(userId, ref.some)))
 
         // fan-in - combine two sources into one
         val merge = builder.add(Merge[ConferenceEngineMessage](2))

@@ -1,4 +1,5 @@
 import {List} from 'immutable'
+import {UserId} from '../users'
 
 export const InMessageTypes = {
   UserConnected: 'UserConnected',
@@ -17,13 +18,18 @@ export interface InMessage {
 }
 
 export interface ConferenceDetails extends InMessage {
-  connectedUsers: List<string>
+  users: List<{
+    userId: UserId
+    username: string
+    online: boolean
+  }>
 }
 
 export interface UserConnected extends InMessage {
-  userId: string
+  userId: UserId
+  username: string
 }
 
 export interface UserDisconnected extends InMessage {
-  userId: string
+  userId: UserId
 }

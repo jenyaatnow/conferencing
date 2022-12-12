@@ -11,12 +11,11 @@ import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import scala.util.Success
 
 object ConferenceEngineActor {
-  // todo spawn chat-actor
   // todo spawn plugins-engine-actor
 
   def receive(
     conferenceId: ConferenceId,
-    userContexts: Set[UserSessionContext] = Set.empty,
+    state: ConferenceState = ConferenceState.empty,
   ): Behavior[ConferenceEngineMessage] = Behaviors.receive { (ctx, msg) =>
     msg match {
       case Connected(newUserContext) =>
@@ -32,18 +31,21 @@ object ConferenceEngineActor {
           case Success(value) => println(s"Spawned new chat '${value.chatId}")
         }
 
-        val newUserContexts = userContexts + newUserContext
-        newUserContexts !> (newUserId, ConferenceDetails(newUserContexts.map(_.userId)))
-        newUserContexts !- (newUserId, UserConnected(newUserId))
-        receive(conferenceId, newUserContexts)
+        val newState = state connect newUserContext
+        newState !> (
+          newUserId,
+          ConferenceDetails(newState.userContexts.keySet.map(userId => UserConnectionDetails(userId, userId, online = true)))
+        )
+        newState !- (newUserId, UserConnected(newUserId, newUserId))
+        receive(conferenceId, newState)
 
       case Disconnected(userId) =>
         // todo should clean session storage on last user
         ctx.log.info(s"User '$userId' disconnected from conference '$conferenceId'")
 
-        userContexts !> (userId, Complete)
-        userContexts !- (userId, UserDisconnected(userId))
-        receive(conferenceId, userContexts - userId)
+        state !> (userId, Complete)
+        state !- (userId, UserDisconnected(userId))
+        receive(conferenceId, state disconnect userId)
 
       case UserMessage(msg, phone) =>
         println(s"Sending message $msg to phone $phone")

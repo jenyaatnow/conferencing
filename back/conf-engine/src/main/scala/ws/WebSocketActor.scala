@@ -24,8 +24,9 @@ object WebSocketActor {
     final case class Failure(ex: Throwable) extends WebSocketsMessage
 
     sealed trait WebSocketResponse extends WebSocketsMessage
-    final case class UserConnected(userId: UserId) extends WebSocketResponse
+    final case class UserConnected(userId: UserId, username: String) extends WebSocketResponse
     final case class UserDisconnected(userId: UserId) extends WebSocketResponse
-    final case class ConferenceDetails(connectedUsers: Set[UserId]) extends WebSocketResponse
+    final case class ConferenceDetails(users: Set[UserConnectionDetails]) extends WebSocketResponse
+    final case class UserConnectionDetails(userId: UserId, username: String, online: Boolean)
   }
 }

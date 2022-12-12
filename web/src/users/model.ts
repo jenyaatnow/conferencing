@@ -1,3 +1,7 @@
+export type UserId = string
+
 export interface User {
-  id: string
+  id: UserId
+  username: string
+  online: boolean
 }

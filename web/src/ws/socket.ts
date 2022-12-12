@@ -1,6 +1,5 @@
 import {ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
-import {addUsersFx, removeUserFx} from '../users'
-import {List} from 'immutable'
+import {handleConferenceDetails, handleUserConnected, handleUserDisconnected} from '../users/wsHandlers'
 
 const confId = prompt("Conference ID")
 const userId = prompt("User ID")
@@ -12,15 +11,15 @@ WS.onmessage = msg => {
   const message = JSON.parse(msg.data) as InMessage
   switch (message.type) {
     case InMessageTypes.ConferenceDetails:
-      addUsersFx((message as ConferenceDetails).connectedUsers.map(userId => ({"id": userId})))
+      handleConferenceDetails(message as ConferenceDetails)
       break
 
     case InMessageTypes.UserConnected:
-      addUsersFx(List.of({"id": (message as UserConnected).userId}))
+      handleUserConnected(message as UserConnected)
       break
 
     case InMessageTypes.UserDisconnected:
-      removeUserFx({"id": (message as UserDisconnected).userId})
+      handleUserDisconnected(message as UserDisconnected)
       break
 
     default: break

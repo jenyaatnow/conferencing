@@ -1,20 +1,29 @@
 import {createEffect, createStore} from 'effector'
-import {List} from 'immutable'
-import {User} from './model'
+import {List, Map} from 'immutable'
+import {User, UserId} from './model'
+import {identity} from '../utils'
 
-function identity<T>(t: T): T {
-  return t
-}
-
-export const addUsersFx = createEffect(identity<List<User>>)
-export const removeUserFx = createEffect(identity<User>)
+export const connectUsersFx = createEffect(identity<List<User>>)
+export const disconnectUserFx = createEffect(identity<UserId>)
 
 export const $usersStore = createStore<List<User>>(List())
   .on(
-    addUsersFx.doneData,
-    (state, data) => state.concat(data).sortBy(user => user.id)
+    connectUsersFx.doneData,
+    (state, payload) => {
+      const connectedUserIds = payload.map(u => u.id)
+      return state
+        .filterNot(u => connectedUserIds.includes(u.id))
+        .concat(payload)
+    }
   )
   .on(
-    removeUserFx.doneData,
-    (state, data) => state.filterNot(u => u.id === data.id)
+    disconnectUserFx.doneData,
+    (state, payload) => {
+      const user = state.find(u => u.id === payload)
+      return user
+        ? state.filterNot(u => u.id === payload).push({...user, online: false}).sortBy(user => user.id)
+        : state
+    }
   )
+
+export const $usersMapStore = $usersStore.map(list => Map(list.map(user => [user.id, user])))
