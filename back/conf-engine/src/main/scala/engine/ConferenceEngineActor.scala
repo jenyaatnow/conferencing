@@ -34,7 +34,7 @@ object ConferenceEngineActor {
         val newState = state connect newUserContext
         newState !> (
           newUserId,
-          ConferenceDetails(newState.userContexts.keySet.map(userId => UserConnectionDetails(userId, userId, online = true)))
+          ConferenceDetails(newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.userId, ctx.online)).toSet)
         )
         newState !- (newUserId, UserConnected(newUserId, newUserId))
         receive(conferenceId, newState)

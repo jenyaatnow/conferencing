@@ -5,6 +5,8 @@ import {$messagesStore} from './store'
 import {$usersMapStore, UserId} from '../users'
 import {splitSpeeches} from './textSpeech'
 import {TextSpeechComponent} from './TextSpeechComponent'
+import {Paper} from '@mui/material'
+import {GlobalIndent} from '../globalStyles'
 
 interface ChatComponentProps {
   chatType: ChatType
@@ -22,8 +24,11 @@ export const ChatComponent = (props: ChatComponentProps) => {
   const speeches = splitSpeeches(messages, users)
 
   return (
-    <div>
+    <Paper variant={'outlined'} sx={{
+      padding: GlobalIndent,
+      height: '100%',
+    }}>
       {speeches.map((s, idx) => <TextSpeechComponent key={idx} speech={s} />)}
-    </div>
+    </Paper>
   )
 }
