@@ -10,11 +10,11 @@ function ConfApp() {
   const ws = WS
 
   return (
-    <Grid container spacing={GlobalIndent} sx={{padding: GlobalIndent, height: `${100-GlobalIndent}vh`}}>
-      <Grid item xs={9}>
+    <Grid container spacing={GlobalIndent} sx={{padding: GlobalIndent, height: `${100-GlobalIndent}vh`, maxHeight: `${100-GlobalIndent}vh`}}>
+      <Grid item xs={9} sx={{height: '100%'}}>
         <MainViewport/>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={3} sx={{height: '100%'}}>
         <ChatComponent chatType='conf' currentUserId={'Hank'}/>
       </Grid>
     </Grid>

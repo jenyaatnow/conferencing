@@ -5,7 +5,7 @@ import {$messagesStore} from './store'
 import {$usersMapStore, UserId} from '../users'
 import {splitSpeeches} from './textSpeech'
 import {TextSpeechComponent} from './TextSpeechComponent'
-import {Paper} from '@mui/material'
+import {Box, Grid, Paper, TextField} from '@mui/material'
 import {GlobalIndent} from '../globalStyles'
 
 interface ChatComponentProps {
@@ -28,7 +28,14 @@ export const ChatComponent = (props: ChatComponentProps) => {
       padding: GlobalIndent,
       height: '100%',
     }}>
-      {speeches.map((s, idx) => <TextSpeechComponent key={idx} speech={s} />)}
+      <Grid container direction={'column'} justifyContent={'space-between'} sx={{height: '100%', flexWrap: 'nowrap'}}>
+        <Grid item sx={{overflowY: 'auto', marginBottom: GlobalIndent}}>
+          {speeches.map((s, idx) => <Box key={idx} sx={{paddingBottom: 1}}><TextSpeechComponent speech={s}/></Box>)}
+        </Grid>
+        <Grid item>
+          <TextField fullWidth/>
+        </Grid>
+      </Grid>
     </Paper>
   )
 }

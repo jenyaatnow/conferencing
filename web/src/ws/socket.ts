@@ -1,8 +1,11 @@
 import {ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
 import {handleConferenceDetails, handleUserConnected, handleUserDisconnected} from '../users/wsHandlers'
+import {loginFx} from '../auth'
 
 const confId = prompt("Conference ID")
 const userId = prompt("User ID")
+loginFx(userId || "")
+
 export const WS = new WebSocket(`ws://0.0.0.0:8080/conference/${confId}?userId=${userId}`)
 
 WS.onmessage = msg => {
