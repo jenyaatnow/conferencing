@@ -1,4 +1,4 @@
-package com.bravewave.conferencing.chatgrpc
+package com.bravewave.conferencing
 package client
 
 import akka.actor.typed.ActorSystem

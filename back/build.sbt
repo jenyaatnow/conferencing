@@ -37,7 +37,7 @@ lazy val `chat-engine` = project
   .dependsOn(configuration, `chat-engine-grpc`)
   .settings(
     idePackagePrefix := Some("com.bravewave.conferencing.chat"),
-    libraryDependencies ++= Akka ++ Logging,
+    libraryDependencies ++= Akka ++ Logging ++ Cats,
   )
 
 lazy val `chat-engine-grpc` = project

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/timestamp.proto";
+
 option java_package = "com.bravewave.conferencing.chatgrpc.gen";
 
 package conferencing.chat;
@@ -12,6 +14,24 @@ message SpawnChatResponse {
   string chatId = 1;
 }
 
+message ChatMessageRequest {
+  string conferenceId = 1;
+  string chatType = 2;
+  string from = 3;
+  optional string to = 4;
+  string text = 5;
+}
+
+message ChatMessageResponse {
+  string conferenceId = 1;
+  string chatType = 2;
+  string from = 3;
+  optional string to = 4;
+  string text = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
 service ChatEngineService {
   rpc SpawnChat(SpawnChatRequest) returns (SpawnChatResponse) {}
+  rpc SendMessage(ChatMessageRequest) returns (ChatMessageResponse) {}
 }

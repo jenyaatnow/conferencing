@@ -3,7 +3,7 @@ package engine
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import com.bravewave.conferencing.chatgrpc.client.ChatEngineClient
+import com.bravewave.conferencing.client.ChatEngineClient
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
@@ -11,7 +11,6 @@ import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import scala.util.Success
 
 object ConferenceEngineActor {
-  // todo spawn plugins-engine-actor
 
   def receive(
     conferenceId: ConferenceId,
@@ -27,8 +26,8 @@ object ConferenceEngineActor {
         implicit val ec = system.executionContext
         val chatEngineClient = new ChatEngineClient()
         chatEngineClient.spawnChat(conferenceId).onComplete {
-          case util.Failure(exception) => println(s"Grpc error: ${exception.getMessage}")
-          case Success(value) => println(s"Spawned new chat '${value.chatId}")
+          case util.Failure(exception) => println(s"Grpc error: ${exception.getMessage}") // todo make logging better
+          case Success(value) =>
         }
 
         val newState = state connect newUserContext
@@ -41,6 +40,7 @@ object ConferenceEngineActor {
 
       case Disconnected(userId) =>
         // todo should clean session storage on last user
+        // todo don't forget to kill all related chats on last user
         ctx.log.info(s"User '$userId' disconnected from conference '$conferenceId'")
 
         state !> (userId, Complete)
