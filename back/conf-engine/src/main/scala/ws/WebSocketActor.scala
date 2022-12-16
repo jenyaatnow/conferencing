@@ -11,7 +11,7 @@ import com.bravewave.conferencing.conf.shared._
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import com.bravewave.conferencing.conversions._
 
-import java.time.{Instant, LocalDateTime, ZoneId}
+import java.time.{Instant, ZoneId, ZonedDateTime}
 import java.util.UUID
 
 object WebSocketActor {
@@ -41,7 +41,7 @@ object WebSocketActor {
       from: UserId,
       to: Option[UserId],
       text: String,
-      timestamp: Option[LocalDateTime],
+      timestamp: Option[ZonedDateTime],
     )
     object Message {
       def apply(m: ChatMessageResponse): Message = Message(
@@ -50,7 +50,7 @@ object WebSocketActor {
         m.from,
         m.to,
         m.text,
-        m.timestamp.map(ts => Instant.ofEpochSecond(ts.seconds, ts.nanos).atZone(ZoneId.of("UTC")).toLocalDateTime)
+        m.timestamp.map(ts => Instant.ofEpochSecond(ts.seconds, ts.nanos).atZone(ZoneId.of("UTC")))
       )
     }
 
