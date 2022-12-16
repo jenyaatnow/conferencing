@@ -4,13 +4,12 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.util.Timeout
 import com.bravewave.conferencing.chat.ChatEngineDispatcher.protocol._
-import com.bravewave.conferencing.chatgrpc.gen.{ChatEngineService, ChatMessageRequest, ChatMessageResponse, SpawnChatRequest, SpawnChatResponse}
+import com.bravewave.conferencing.chatgrpc.gen._
 
 import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
 
 class ChatEngineServiceImpl(implicit system: ActorSystem[ChatEngineDispatcherMessage]) extends ChatEngineService {
-  implicit private val timeout: Timeout = 5.seconds // todo move to conf
+  implicit private val timeout: Timeout = Config.chatEngineDispatcherAskTimeout
 
   override def spawnChat(in: SpawnChatRequest): Future[SpawnChatResponse] =
     system.ask { replyTo => SpawnConfChat(in, replyTo) }

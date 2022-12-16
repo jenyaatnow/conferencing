@@ -10,11 +10,9 @@ import com.bravewave.conferencing.chat.ChatEngineDispatcher.protocol._
 import com.bravewave.conferencing.chatgrpc.gen.{ChatMessageRequest, SpawnChatRequest, SpawnChatResponse}
 import com.bravewave.conferencing.conf.shared.{ChatId, ChatTypes}
 
-import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
 
 object ChatEngineDispatcher {
-  implicit private val timeout: Timeout = 5.seconds // todo move to conf
 
   def apply(): Behavior[ChatEngineDispatcherMessage] = Behaviors.receive { (ctx, msg) =>
     msg match {
@@ -27,6 +25,7 @@ object ChatEngineDispatcher {
       case message @ SendChatMessage(in, _) =>
         resolveChatId(in)
           .foreach { chatId =>
+            implicit val timeout: Timeout = Config.actorLookupTimeout
             val serviceKey = ServiceKey[ChatActorMessage](chatId)
             ctx.ask(ctx.system.receptionist, Receptionist.Find(serviceKey)) {
               case Success(listing) =>
