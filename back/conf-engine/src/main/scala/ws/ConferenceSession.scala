@@ -12,12 +12,14 @@ import akka.util.Timeout
 import cats.implicits.catsSyntaxOptionId
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
-import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
+import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
+import com.bravewave.conferencing.conf.shared.{ChatTypes, ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
-import io.circe.Encoder
+import io.circe._
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
 import io.circe.generic.extras.semiauto._
+import io.circe.jawn.decode
 import io.circe.syntax._
 
 import scala.concurrent.Future
@@ -53,7 +55,11 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
         // transforms messages from the websockets into the actor's protocol
         val webSocketSource = builder.add(
           Flow[Message].collect {
-            case TextMessage.Strict(txt) => UserMessage(txt, "111-111-1111")
+            case TextMessage.Strict(json) =>
+              implicit val chatTypeDecoder: Decoder[ChatType] = Decoder.decodeEnumeration(ChatTypes)
+              implicit val configuration: Configuration = Configuration.default.withDiscriminator("type")
+              implicit val decoder: Decoder[ExternalConferenceEngineMessage] = deriveConfiguredDecoder[ExternalConferenceEngineMessage]
+              decode[ExternalConferenceEngineMessage](json).getOrElse(Failed(new RuntimeException(s"Unable to parse incoming message:\n$json")))
           }
         )
 
@@ -61,8 +67,9 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
         val webSocketSink = builder.add(
           Flow[WebSocketsMessage].collect {
             case r: WebSocketResponse =>
+              implicit val chatTypeDecoder: Encoder[ChatType] = Encoder.encodeEnumeration(ChatTypes)
               implicit val configuration: Configuration = Configuration.default.withDiscriminator("type")
-              implicit val json: Encoder[WebSocketResponse] = deriveConfiguredEncoder[WebSocketResponse]
+              implicit val encoder: Encoder[WebSocketResponse] = deriveConfiguredEncoder[WebSocketResponse]
               TextMessage(r.asJson.noSpaces)
           }
         )

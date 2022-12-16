@@ -2,16 +2,16 @@ import {createEffect, createStore} from 'effector'
 import {ChatMessage, ChatType} from './model'
 import {List, Map} from 'immutable'
 import {identity} from '../utils'
-import {mockMessages} from '../mockData'
 
-export const addMessageFx = createEffect(identity<ChatMessage>)
+export const addMessagesFx = createEffect(identity<List<ChatMessage>>)
+export const sendMessageFx = createEffect(identity<ChatMessage>) // todo impl
 
 // todo use userId as key for dm chats
-export const $messagesStore = createStore<Map<ChatType, List<ChatMessage>>>(mockMessages)
+export const $messagesStore = createStore<Map<ChatType, List<ChatMessage>>>(Map())
   .on(
-    addMessageFx.doneData,
-    (state, payload) => {
-      const chatMessages = (state.get(payload.chatType) || List()).push(payload)
-      state.set(payload.chatType, chatMessages)
-    }
+    addMessagesFx.doneData,
+    (state, payload) => payload.reduce((s, m) => {
+      const chatMessages = (s.get(m.chatType) || List()).push(m)
+      return s.set(m.chatType, chatMessages)
+    }, state)
   )

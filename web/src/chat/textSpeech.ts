@@ -1,6 +1,7 @@
 import {User, UserId} from '../users'
 import {List, Map} from 'immutable'
 import {ChatMessage} from './model'
+import {ChatStrings} from '../strings'
 
 
 export interface TextSpeech {
@@ -33,7 +34,7 @@ export function splitSpeeches(messages: List<ChatMessage>, users: Map<UserId, Us
     return List()
   } else {
     const message = messages.first() as ChatMessage
-    const user = users.get(message.userId) || {id: message.userId, username: `Unknown user [${message.userId}]`, online: false}
+    const user = users.get(message.from) || {id: message.from, username: ChatStrings.UnknownUser(message.from), online: false}
 
     return prepend(splitSpeeches(messages.rest(), users), message, user)
   }

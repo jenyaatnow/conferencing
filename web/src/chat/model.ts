@@ -1,11 +1,17 @@
 import {UserId} from '../users'
 import {Moment} from 'moment'
 
-export type ChatType = 'conf' | 'dm'
+export const ChatTypes = {
+  Conf: 'conf',
+  DM: 'dm',
+}
+
+export type ChatType = typeof ChatTypes.Conf | typeof ChatTypes.DM
 
 export interface ChatMessage {
   chatType: ChatType
-  userId: UserId
+  from: UserId
+  to?: UserId
   text: string
-  timestamp: Moment
+  timestamp?: Moment
 }

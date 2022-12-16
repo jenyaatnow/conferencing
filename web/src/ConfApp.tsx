@@ -1,7 +1,7 @@
 import React from 'react'
 import './App.css'
 import {WS} from './ws'
-import {ChatComponent} from './chat'
+import {ChatComponent, ChatTypes} from './chat'
 import {Grid} from '@mui/material'
 import {MainViewport} from './video/MainViewport'
 import {GlobalIndent} from './globalStyles'
@@ -15,7 +15,7 @@ function ConfApp() {
         <MainViewport/>
       </Grid>
       <Grid item xs={3} sx={{height: '100%'}}>
-        <ChatComponent chatType='conf' currentUserId={'Hank'}/>
+        <ChatComponent chatType={ChatTypes.Conf}/>
       </Grid>
     </Grid>
   );

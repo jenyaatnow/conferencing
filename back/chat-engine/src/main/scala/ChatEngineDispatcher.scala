@@ -8,7 +8,7 @@ import cats.implicits.{catsSyntaxOptionId, none}
 import com.bravewave.conferencing.chat.ChatActor.protocol.ChatActorMessage
 import com.bravewave.conferencing.chat.ChatEngineDispatcher.protocol._
 import com.bravewave.conferencing.chatgrpc.gen.{ChatMessageRequest, SpawnChatRequest, SpawnChatResponse}
-import com.bravewave.conferencing.conf.shared.ChatId
+import com.bravewave.conferencing.conf.shared.{ChatId, ChatTypes}
 
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Success}
@@ -19,7 +19,7 @@ object ChatEngineDispatcher {
   def apply(): Behavior[ChatEngineDispatcherMessage] = Behaviors.receive { (ctx, msg) =>
     msg match {
       case SpawnConfChat(in, replyTo) =>
-        val chatId = s"conf@${in.conferenceId}"
+        val chatId = s"${ChatTypes.conf}@${in.conferenceId}"
         spawnChat(ctx, chatId)
         replyTo ! SpawnChatResponse(chatId)
         Behaviors.same
@@ -48,7 +48,7 @@ object ChatEngineDispatcher {
 
   private def spawnChat(ctx: ActorContext[ChatEngineDispatcherMessage], chatId: String): ActorRef[ChatActorMessage] = {
     val serviceKey = ServiceKey[ChatActorMessage](chatId)
-    val chatActor = ctx.spawn(ChatActor(), s"chat-$chatId")
+    val chatActor = ctx.spawn(ChatActor(), s"chat_$chatId")
     ctx.system.receptionist ! Receptionist.Register(serviceKey, chatActor)
 
     ctx.log.info(s"Spawned new chat '$chatId'")
@@ -57,10 +57,10 @@ object ChatEngineDispatcher {
 
   private def resolveChatId(msg: ChatMessageRequest): Option[ChatId] = msg match {
     case ChatMessageRequest(conferenceId, "conf", _, _, _, _) =>
-      s"conf@$conferenceId".some
+      s"${ChatTypes.conf}@$conferenceId".some
 
     case ChatMessageRequest(conferenceId, "dm", from, Some(to), _, _) =>
-      List(from, to).sorted.mkString(s"dm@$conferenceId:", ":", "").some
+      List(from, to).sorted.mkString(s"${ChatTypes.dm}@$conferenceId:", ":", "").some
 
     case _ => none
   }

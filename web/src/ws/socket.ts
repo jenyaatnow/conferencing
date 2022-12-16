@@ -1,6 +1,7 @@
-import {ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
+import {ChatMessages, ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
 import {handleConferenceDetails, handleUserConnected, handleUserDisconnected} from '../users/wsHandlers'
 import {loginFx} from '../auth'
+import {handleChatMessages} from '../chat'
 
 const confId = prompt("Conference ID")
 const userId = prompt("User ID")
@@ -25,6 +26,10 @@ WS.onmessage = msg => {
       handleUserDisconnected(message as UserDisconnected)
       break
 
+    case InMessageTypes.ChatMessages:
+      handleChatMessages(message as ChatMessages)
+      break
+
     default: break
   }
 }
@@ -36,6 +41,7 @@ WS.onerror = error => {
 
 export const send = (msg: any): void => {
   if (WS.readyState === 1) {
+    console.log('Send message', JSON.stringify(msg))
     WS.send(JSON.stringify(msg))
   }
 }

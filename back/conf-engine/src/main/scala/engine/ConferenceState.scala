@@ -31,6 +31,8 @@ final case class ConferenceState(
    */
   def !>(userId: UserId, msg: WebSocketsMessage): Unit =
     userContexts.get(userId).foreach(_ ! msg)
+
+  def isClear: Boolean = userContexts.isEmpty
 }
 
 object ConferenceState {

@@ -13,6 +13,7 @@ class ChatEngineClient(implicit actorSystem: ActorSystem[_]) {
   private val clientSettings = GrpcClientSettings.fromConfig(ChatEngineService.name)
   private val client = ChatEngineServiceClient(clientSettings)
 
-  def spawnChat(conferenceId: ConferenceId): Future[SpawnChatResponse] =
-    client.spawnChat(SpawnChatRequest(conferenceId))
+  def spawnChat(conferenceId: ConferenceId): Future[SpawnChatResponse] = client.spawnChat(SpawnChatRequest(conferenceId))
+
+  def sendMessage(in: ChatMessageRequest): Future[ChatMessageResponse] = client.sendMessage(in)
 }

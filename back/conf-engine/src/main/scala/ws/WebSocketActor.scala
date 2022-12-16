@@ -5,8 +5,12 @@ import akka.actor.typed.ActorRef
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import akka.stream.typed.scaladsl.ActorSource
-import com.bravewave.conferencing.conf.shared.UserId
+import com.bravewave.conferencing.chatgrpc.gen.ChatMessageResponse
+import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
+import com.bravewave.conferencing.conf.shared._
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
+
+import java.time.{Instant, LocalDateTime, ZoneId}
 
 object WebSocketActor {
 
@@ -27,6 +31,25 @@ object WebSocketActor {
     final case class UserConnected(userId: UserId, username: String) extends WebSocketResponse
     final case class UserDisconnected(userId: UserId) extends WebSocketResponse
     final case class ConferenceDetails(users: Set[UserConnectionDetails]) extends WebSocketResponse
+    final case class ChatMessages(messages: List[Message]) extends WebSocketResponse
+
+    final case class Message(
+      chatType: ChatType,
+      from: UserId,
+      to: Option[UserId],
+      text: String,
+      timestamp: Option[LocalDateTime],
+    )
+    object Message {
+      def apply(m: ChatMessageResponse): Message = Message(
+        ChatTypes.withName(m.chatType),
+        m.from,
+        m.to,
+        m.text,
+        m.timestamp.map(ts => Instant.ofEpochSecond(ts.seconds, ts.nanos).atZone(ZoneId.of("UTC")).toLocalDateTime)
+      )
+    }
+
     final case class UserConnectionDetails(userId: UserId, username: String, online: Boolean)
   }
 }

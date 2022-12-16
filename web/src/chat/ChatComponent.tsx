@@ -1,27 +1,38 @@
 import {ChatMessage, ChatType} from './model'
 import {List} from 'immutable'
-import {useStoreMap} from 'effector-react'
+import {useStore, useStoreMap} from 'effector-react'
 import {$messagesStore} from './store'
 import {$usersMapStore, UserId} from '../users'
 import {splitSpeeches} from './textSpeech'
-import {TextSpeechComponent} from './TextSpeechComponent'
-import {Box, Grid, Paper, TextField} from '@mui/material'
+import {Box, Grid, Paper} from '@mui/material'
 import {GlobalIndent} from '../globalStyles'
+import {buildChatMessageReceived, send} from '../ws'
+import {$currentUserStore} from '../auth'
+import {TextInput} from './TextInput'
+import TextSpeechComponent from './TextSpeechComponent'
 
 interface ChatComponentProps {
   chatType: ChatType
-  currentUserId: UserId
   dmUserId?: UserId
 }
 
+// todo 1. obtain all previous messages on connection
+//      2. delivery report
+//      3. DMs
 export const ChatComponent = (props: ChatComponentProps) => {
-  const chatUserIds = useStoreMap($messagesStore, s => s.get(props.chatType) || List<ChatMessage>())
-    .map(m => m.userId)
-    .toSet()
-
-  const users = useStoreMap($usersMapStore, s => s.filter(u => chatUserIds.includes(u.id)))
+  const currentUser = useStore($currentUserStore)
+  const users = useStore($usersMapStore)
   const messages = useStoreMap($messagesStore, s => s.get(props.chatType) || List<ChatMessage>())
   const speeches = splitSpeeches(messages, users)
+
+  const handlePressEnter = (text: string) => {
+    send(buildChatMessageReceived({
+      chatType: props.chatType,
+      from: currentUser.id,
+      to: props.dmUserId,
+      text: text
+    }))
+  }
 
   return (
     <Paper variant={'outlined'} sx={{
@@ -33,7 +44,7 @@ export const ChatComponent = (props: ChatComponentProps) => {
           {speeches.map((s, idx) => <Box key={idx} sx={{paddingBottom: 1}}><TextSpeechComponent speech={s}/></Box>)}
         </Grid>
         <Grid item>
-          <TextField fullWidth/>
+          <TextInput onPressEnter={handlePressEnter}/>
         </Grid>
       </Grid>
     </Paper>
