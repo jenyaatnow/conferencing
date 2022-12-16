@@ -1,6 +1,6 @@
 import {ChatMessages} from '../ws'
-import {addMessagesFx} from './store'
+import {receiveMessagesFx} from './store'
 
 export const handleChatMessages = (req: ChatMessages) => {
-  addMessagesFx(req.messages)
+  receiveMessagesFx(req.messages)
 }

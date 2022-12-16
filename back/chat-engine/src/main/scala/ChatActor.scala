@@ -15,6 +15,7 @@ object ChatActor {
     msg match {
       case SendChatMessage(in, replyTo) =>
         val message = ChatMessageResponse(
+          in.id,
           in.conferenceId,
           in.chatType,
           in.from,

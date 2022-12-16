@@ -9,7 +9,9 @@ import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
 import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
+import com.bravewave.conferencing.conversions._
 
+import java.util.UUID
 import scala.util.Success
 
 object ConferenceEngineActor {
@@ -52,8 +54,8 @@ object ConferenceEngineActor {
         state !- (userId, UserDisconnected(userId))
         receive(conferenceId, state disconnect userId)
 
-      case ChatMessageReceived(chatType, from, to, text) =>
-        chatEngineClient.sendMessage(ChatMessageRequest(conferenceId, chatType.toString, from, to, text))
+      case ChatMessageReceived(id, chatType, from, to, text) =>
+        chatEngineClient.sendMessage(ChatMessageRequest(Some(id), conferenceId, chatType.toString, from, to, text))
           .onComplete {
             case util.Failure(_) =>
             case Success(value) => state !! ChatMessages(Message(value) :: Nil)
@@ -74,6 +76,7 @@ object ConferenceEngineActor {
     final case class Failed(ex: Throwable) extends ConferenceEngineMessage
 
     final case class ChatMessageReceived(
+      id: UUID,
       chatType: ChatType,
       from: UserId,
       to: Option[UserId],

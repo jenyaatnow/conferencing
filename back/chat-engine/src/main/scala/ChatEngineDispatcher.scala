@@ -56,10 +56,10 @@ object ChatEngineDispatcher {
   }
 
   private def resolveChatId(msg: ChatMessageRequest): Option[ChatId] = msg match {
-    case ChatMessageRequest(conferenceId, "conf", _, _, _, _) =>
+    case ChatMessageRequest(_, conferenceId, "conf", _, _, _, _) =>
       s"${ChatTypes.conf}@$conferenceId".some
 
-    case ChatMessageRequest(conferenceId, "dm", from, Some(to), _, _) =>
+    case ChatMessageRequest(_, conferenceId, "dm", from, Some(to), _, _) =>
       List(from, to).sorted.mkString(s"${ChatTypes.dm}@$conferenceId:", ":", "").some
 
     case _ => none

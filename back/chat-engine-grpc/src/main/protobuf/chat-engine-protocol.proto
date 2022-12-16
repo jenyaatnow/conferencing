@@ -6,6 +6,10 @@ option java_package = "com.bravewave.conferencing.chatgrpc.gen";
 
 package conferencing.chat;
 
+message UUID {
+  string value = 1;
+}
+
 message SpawnChatRequest {
   string conferenceId = 1;
 }
@@ -15,20 +19,22 @@ message SpawnChatResponse {
 }
 
 message ChatMessageRequest {
-  string conferenceId = 1;
-  string chatType = 2;
-  string from = 3;
-  optional string to = 4;
-  string text = 5;
+  UUID id = 1;
+  string conferenceId = 2;
+  string chatType = 3;
+  string from = 4;
+  optional string to = 5;
+  string text = 6;
 }
 
 message ChatMessageResponse {
-  string conferenceId = 1;
-  string chatType = 2;
-  string from = 3;
-  optional string to = 4;
-  string text = 5;
-  google.protobuf.Timestamp timestamp = 6;
+  UUID id = 1;
+  string conferenceId = 2;
+  string chatType = 3;
+  string from = 4;
+  optional string to = 5;
+  string text = 6;
+  google.protobuf.Timestamp timestamp = 7;
 }
 
 service ChatEngineService {

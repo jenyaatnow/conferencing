@@ -9,9 +9,15 @@ export const ChatTypes = {
 export type ChatType = typeof ChatTypes.Conf | typeof ChatTypes.DM
 
 export interface ChatMessage {
+  id: string
   chatType: ChatType
   from: UserId
   to?: UserId
   text: string
   timestamp?: Moment
+}
+
+export interface ChatMessageStoreEntry {
+  message: ChatMessage,
+  delivered: boolean
 }

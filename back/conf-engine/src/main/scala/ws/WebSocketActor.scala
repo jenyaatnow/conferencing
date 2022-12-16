@@ -9,8 +9,10 @@ import com.bravewave.conferencing.chatgrpc.gen.ChatMessageResponse
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
 import com.bravewave.conferencing.conf.shared._
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
+import com.bravewave.conferencing.conversions._
 
 import java.time.{Instant, LocalDateTime, ZoneId}
+import java.util.UUID
 
 object WebSocketActor {
 
@@ -34,6 +36,7 @@ object WebSocketActor {
     final case class ChatMessages(messages: List[Message]) extends WebSocketResponse
 
     final case class Message(
+      id: Option[UUID],
       chatType: ChatType,
       from: UserId,
       to: Option[UserId],
@@ -42,6 +45,7 @@ object WebSocketActor {
     )
     object Message {
       def apply(m: ChatMessageResponse): Message = Message(
+        m.id.map(grpcUuid2javaUuid),
         ChatTypes.withName(m.chatType),
         m.from,
         m.to,
