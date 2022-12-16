@@ -8,10 +8,18 @@ interface TextInputProps {
 export const TextInput = (props: TextInputProps) => {
   const [textInput, setTextInput] = useState('');
 
-  const handlePressEnter = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.ctrlKey && e.code === 'Enter') {
+      setTextInput(`${textInput}\n`)
+      return
+    }
+
     if (e.code === 'Enter') {
+      e.preventDefault()
+      if (!textInput.trim()) return
       props.onPressEnter(textInput)
       setTextInput('')
+      return
     }
   }
 
@@ -23,8 +31,10 @@ export const TextInput = (props: TextInputProps) => {
     <TextField fullWidth
                size={'small'}
                autoComplete={'off'}
+               multiline
+               maxRows={4}
                value={textInput}
-               onKeyDown={handlePressEnter}
+               onKeyDown={handleKeyDown}
                onChange={handleInputChange}
     />
   )
