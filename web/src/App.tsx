@@ -1,26 +1,23 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import {WS} from './ws'
+import {ChatComponent, ChatTypes} from './chat'
+import {Grid} from '@mui/material'
+import {MainViewport} from './video/MainViewport'
+import {GlobalIndent} from './globalStyles'
 
 function App() {
+  const ws = WS
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Grid container spacing={GlobalIndent} sx={{padding: GlobalIndent, height: `${100-GlobalIndent}vh`, maxHeight: `${100-GlobalIndent}vh`}}>
+      <Grid item xs={9} sx={{height: '100%'}}>
+        <MainViewport/>
+      </Grid>
+      <Grid item xs={3} sx={{height: '100%'}}>
+        <ChatComponent chatType={ChatTypes.Conf}/>
+      </Grid>
+    </Grid>
   );
 }
 
-export default App;
+export default App
