@@ -10,14 +10,6 @@ message UUID {
   string value = 1;
 }
 
-message SpawnChatRequest {
-  string conferenceId = 1;
-}
-
-message SpawnChatResponse {
-  string chatId = 1;
-}
-
 message ChatMessageRequest {
   UUID id = 1;
   string conferenceId = 2;
@@ -38,6 +30,5 @@ message ChatMessageResponse {
 }
 
 service ChatEngineService {
-  rpc SpawnChat(SpawnChatRequest) returns (SpawnChatResponse) {}
   rpc SendMessage(ChatMessageRequest) returns (ChatMessageResponse) {}
 }

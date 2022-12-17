@@ -30,13 +30,6 @@ object ConferenceEngineActor {
         val newUserId = newUserContext.userId
         ctx.log.info(s"User '$newUserId' connected to conference '$conferenceId'")
 
-        if (state.isClear) {
-          chatEngineClient.spawnChat(conferenceId).onComplete {
-            case util.Failure(exception) => println(s"Grpc error: ${exception.getMessage}") // todo make logging better
-            case Success(value) =>
-          }
-        }
-
         val newState = state connect newUserContext
         newState !> (
           newUserId,
