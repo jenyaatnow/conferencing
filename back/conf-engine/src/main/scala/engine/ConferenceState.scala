@@ -8,6 +8,7 @@ import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol.WebSocketsMess
 final case class ConferenceState(
   userContexts: Map[UserId, UserSessionContext] = Map.empty,
 ) {
+
   def connect(ctx: UserSessionContext): ConferenceState =
     copy(userContexts = userContexts + (ctx.userId -> ctx))
 
@@ -32,7 +33,8 @@ final case class ConferenceState(
   def !>(userId: UserId, msg: WebSocketsMessage): Unit =
     userContexts.get(userId).foreach(_ ! msg)
 
-  def isClear: Boolean = userContexts.isEmpty
+  def hasNoUsers: Boolean =
+    userContexts.forall(context => !context._2.online)
 }
 
 object ConferenceState {

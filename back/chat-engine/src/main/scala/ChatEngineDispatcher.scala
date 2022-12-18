@@ -4,6 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import com.bravewave.conferencing.chat.ChatEngineDispatcher.protocol._
 import com.bravewave.conferencing.chat.ConfChatsManager.protocol.ConfChatsManagerProtocol
+import com.bravewave.conferencing.chatgrpc.gen.KillConfChatsRes
 import com.bravewave.conferencing.conf.shared.ConferenceId
 
 object ChatEngineDispatcher {
@@ -20,6 +21,11 @@ object ChatEngineDispatcher {
         confChatsManagerRef ! message
         ChatEngineDispatcher(state + (in.conferenceId, confChatsManagerRef))
 
+      case KillConfChats(conferenceId, replyTo) =>
+        state.confChats.get(conferenceId).foreach(ctx.stop)
+        replyTo ! KillConfChatsRes(conferenceId)
+        ChatEngineDispatcher(state - conferenceId)
+
       case _ => Behaviors.same
     }
   }
@@ -31,5 +37,6 @@ object ChatEngineDispatcher {
 
   object protocol {
     trait ChatEngineDispatcherProtocol
+    final case class KillConfChats(conferenceId: ConferenceId, replyTo: ActorRef[KillConfChatsRes]) extends ChatEngineDispatcherProtocol
   }
 }

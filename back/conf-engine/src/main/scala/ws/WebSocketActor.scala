@@ -5,7 +5,7 @@ import akka.actor.typed.ActorRef
 import akka.stream.OverflowStrategy
 import akka.stream.scaladsl.Source
 import akka.stream.typed.scaladsl.ActorSource
-import com.bravewave.conferencing.chatgrpc.gen.ChatMessageResponse
+import com.bravewave.conferencing.chatgrpc.gen.SendMessageRes
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
 import com.bravewave.conferencing.conf.shared._
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
@@ -44,7 +44,7 @@ object WebSocketActor {
       timestamp: Option[ZonedDateTime],
     )
     object Message {
-      def apply(m: ChatMessageResponse): Message = Message(
+      def apply(m: SendMessageRes): Message = Message(
         m.id.map(grpcUuid2javaUuid),
         ChatTypes.withName(m.chatType),
         m.from,
