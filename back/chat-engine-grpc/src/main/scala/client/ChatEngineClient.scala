@@ -12,7 +12,7 @@ class ChatEngineClient(implicit actorSystem: ActorSystem[_]) {
   private val clientSettings = GrpcClientSettings.fromConfig(ChatEngineService.name)
   private val client = ChatEngineServiceClient(clientSettings)
 
-  def sendMessage(in: SendMessageReq): Future[SendMessageRes] = client.sendMessage(in)
-
+  def sendMessage(in: SendMessageReq): Future[ChatMessageRes] = client.sendMessage(in)
+  def getChatMessages(in: GetChatMessagesReq): Future[GetChatMessagesRes] = client.getChatMessages(in)
   def killConfChats(in: KillConfChatsReq): Future[KillConfChatsRes] = client.killConfChats(in)
 }

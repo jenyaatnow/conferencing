@@ -1,7 +1,8 @@
 import {ChatMessages, ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
-import {handleConferenceDetails, handleUserConnected, handleUserDisconnected} from '../users/wsHandlers'
+import {handleUserConnected, handleUserDisconnected} from '../users'
 import {loginFx} from '../auth'
 import {handleChatMessages} from '../chat'
+import {handleConferenceDetails} from '../conference'
 
 const confId = prompt("Conference ID")
 const userId = prompt("User ID")

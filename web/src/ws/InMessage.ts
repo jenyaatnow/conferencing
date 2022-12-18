@@ -26,6 +26,7 @@ export interface ConferenceDetails extends InMessage {
     username: string
     online: boolean
   }>
+  chatMessages: List<ChatMessage>
 }
 
 export interface UserConnected extends InMessage {

@@ -3,11 +3,11 @@ package engine
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import com.bravewave.conferencing.chatgrpc.gen.{KillConfChatsReq, SendMessageReq}
+import com.bravewave.conferencing.chatgrpc.gen.{GetChatMessagesReq, KillConfChatsReq, SendMessageReq}
 import com.bravewave.conferencing.client.ChatEngineClient
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
-import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
+import com.bravewave.conferencing.conf.shared.{ChatTypes, ConferenceId, UserId}
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import com.bravewave.conferencing.conversions._
 
@@ -31,10 +31,12 @@ object ConferenceEngineActor {
         ctx.log.info(s"User '$newUserId' connected to conference '$conferenceId'")
 
         val newState = state connect newUserContext
-        newState !> (
-          newUserId,
-          ConferenceDetails(newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.userId, ctx.online)).toSet)
-        )
+        chatEngineClient.getChatMessages(GetChatMessagesReq(conferenceId, ChatTypes.conf.toString, newUserId, None))
+          .foreach { res =>
+            val confMembers = // todo find real usernames somewhere
+              newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.userId, ctx.online)).toSet
+            newState !> (newUserId, ConferenceDetails(confMembers, res.messages.map(Message.apply)))
+          }
         newState !- (newUserId, UserConnected(newUserId, newUserId))
         receive(conferenceId, newState)
 

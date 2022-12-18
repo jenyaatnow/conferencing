@@ -17,7 +17,6 @@ interface ChatComponentProps {
   dmUserId?: UserId
 }
 
-// todo obtain all previous messages on connection
 export const ChatComponent = (props: ChatComponentProps) => {
   const currentUser = useStore($currentUserStore)
   const users = useStore($usersMapStore)

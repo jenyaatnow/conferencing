@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{Behavior, PostStop}
 import cats.implicits.catsSyntaxOptionId
 import com.bravewave.conferencing.chat.ChatActor.protocol.ChatActorProtocol
-import com.bravewave.conferencing.chatgrpc.gen.SendMessageRes
+import com.bravewave.conferencing.chatgrpc.gen.{ChatMessageRes, GetChatMessagesRes}
 import com.bravewave.conferencing.conf.shared.ChatId
 import com.google.protobuf.timestamp.Timestamp
 
@@ -19,7 +19,7 @@ object ChatActor {
 
   private def apply(state: State): Behavior[ChatActorProtocol] = Behaviors.receiveMessage[ChatActorProtocol] {
     case SendChatMessage(in, replyTo) =>
-      val message = SendMessageRes(
+      val message = ChatMessageRes(
         in.id,
         in.conferenceId,
         in.chatType,
@@ -31,6 +31,10 @@ object ChatActor {
       replyTo ! message
       ChatActor(state + message)
 
+    case GetChatMessages(_, replyTo) =>
+      replyTo ! GetChatMessagesRes(state.messages)
+      Behaviors.same
+
     case _ => Behaviors.same
   }.receiveSignal {
     case (ctx, PostStop) =>
@@ -39,8 +43,8 @@ object ChatActor {
   }
 
 
-  private final case class State(chatId: ChatId, messages: List[SendMessageRes] = Nil) {
-    def +(msg: SendMessageRes): State = copy(messages = messages :+ msg)
+  private final case class State(chatId: ChatId, messages: List[ChatMessageRes] = Nil) {
+    def +(msg: ChatMessageRes): State = copy(messages = messages :+ msg)
   }
 
   object protocol {

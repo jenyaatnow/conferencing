@@ -1,9 +1,15 @@
 import {v4 as uuidv4} from 'uuid'
-import {List} from 'immutable'
+import {List, Map} from 'immutable'
 import moment from 'moment/moment'
 import {splitSpeeches} from './textSpeech'
 import {ChatTypes} from './model'
-import {hank, mockUsers, mom} from '../mockData'
+import {User, UserId} from '../users'
+
+export const hank = {id: "Hank", username: "Hank", online: true}
+export const mom = {id: "Mom", username: "Mom", online: true}
+export const mockUsers = Map<UserId, User>()
+  .set("Hank", hank)
+  .set("Mom", mom)
 
 test('should group messages to speeches', () => {
   const m1 = {message: {id: uuidv4(), chatType: ChatTypes.Conf, from: hank.id, text: "Hi, mom, it's me", timestamp: moment()}, delivered: true}

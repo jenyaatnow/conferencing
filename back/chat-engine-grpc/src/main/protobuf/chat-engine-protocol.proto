@@ -19,7 +19,7 @@ message SendMessageReq {
   string text = 6;
 }
 
-message SendMessageRes {
+message ChatMessageRes {
   UUID id = 1;
   string conferenceId = 2;
   string chatType = 3;
@@ -27,6 +27,17 @@ message SendMessageRes {
   optional string to = 5;
   string text = 6;
   google.protobuf.Timestamp timestamp = 7;
+}
+
+message GetChatMessagesReq {
+  string conferenceId = 1;
+  string chatType = 2;
+  string from = 3;
+  optional string to = 4;
+}
+
+message GetChatMessagesRes {
+  repeated ChatMessageRes messages = 1;
 }
 
 message KillConfChatsReq {
@@ -38,6 +49,7 @@ message KillConfChatsRes {
 }
 
 service ChatEngineService {
-  rpc SendMessage(SendMessageReq) returns (SendMessageRes) {}
+  rpc SendMessage(SendMessageReq) returns (ChatMessageRes) {}
+  rpc GetChatMessages(GetChatMessagesReq) returns (GetChatMessagesRes) {}
   rpc KillConfChats(KillConfChatsReq) returns (KillConfChatsRes) {}
 }
