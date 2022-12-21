@@ -1,24 +1,24 @@
 import {v4 as uuidv4} from 'uuid'
 import {createEffect, createStore} from 'effector'
-import {User, UserId} from '../users'
+import {AuthUser, UserOrigin} from '../users'
 import {ChatStrings} from '../strings'
 
-const unknownUser = () => {
-  const id = uuidv4().substring(0, 8)
-  return {id, username: ChatStrings.UnknownUser(id), online: true}
+const generateId = () => uuidv4().substring(0, 8)
+
+const alien = () => {
+  const id = generateId()
+  return {id, username: ChatStrings.UnknownUser(id), online: true, origin: UserOrigin.ALIEN}
 }
 
-const obtainUserDetails = (id: UserId) => {
-  // todo find real username somewhere
-  return {id, username: id, online: true}
-}
+export const logoutFx = createEffect(() => alien())
 
-export const loginFx = createEffect((userId: UserId) => obtainUserDetails(userId))
-export const logoutFx = createEffect(() => unknownUser())
+export const logInWithTempUserFx = createEffect((username: string) => {
+  return {id: generateId(), username, online: true, origin: UserOrigin.TEMP}
+})
 
-export const $currentUserStore = createStore<User>(unknownUser())
+export const $currentUserStore = createStore<AuthUser>(alien())
   .on(
-    loginFx.doneData,
+    logInWithTempUserFx.doneData,
     (_, payload) => payload
   )
   .on(

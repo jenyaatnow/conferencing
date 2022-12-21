@@ -7,7 +7,7 @@ import {$usersMapStore, UserId} from '../users'
 import {splitSpeeches} from './textSpeech'
 import {Box, Grid, Paper} from '@mui/material'
 import {GlobalIndent} from '../globalStyles'
-import {buildChatMessageReceived, send} from '../ws'
+import {buildChatMessageReceived, wsSendFx} from '../ws'
 import {$currentUserStore} from '../auth'
 import {TextInput} from './TextInput'
 import TextSpeechComponent from './TextSpeechComponent'
@@ -32,7 +32,7 @@ export const ChatComponent = (props: ChatComponentProps) => {
       text: text
     }
     sendMessageFx(message)
-    send(buildChatMessageReceived(message))
+    wsSendFx(buildChatMessageReceived(message))
   }
 
   return (

@@ -2,8 +2,11 @@ package com.bravewave.conferencing.conf
 package engine
 
 import akka.actor.typed.ActorRef
+import cats.implicits.catsSyntaxOptionId
 import com.bravewave.conferencing.conf.shared.UserId
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol.WebSocketsMessage
+
+import java.util.Locale
 
 final case class ConferenceState(
   userContexts: Map[UserId, UserSessionContext] = Map.empty,
@@ -13,7 +16,7 @@ final case class ConferenceState(
     copy(userContexts = userContexts + (ctx.userId -> ctx))
 
   def disconnect(userId: UserId): ConferenceState =
-    copy(userContexts = userContexts + (userId -> UserSessionContext(userId, online = false)))
+    copy(userContexts = userContexts ++ userContexts.get(userId).map(userId -> _.offline()))
 
   /**
    * Notify all users.
@@ -35,6 +38,9 @@ final case class ConferenceState(
 
   def hasNoUsers: Boolean =
     userContexts.forall(context => !context._2.online)
+
+  def has(userId: UserId): Boolean =
+    userContexts.exists(_._1 == userId)
 }
 
 object ConferenceState {
@@ -44,8 +50,25 @@ object ConferenceState {
 
 final case class UserSessionContext(
   userId: UserId,
-  websocket: Option[ActorRef[WebSocketsMessage]] = None,
+  username: String,
+  locale: Locale,
+  websocket: Option[ActorRef[WebSocketsMessage]],
   online: Boolean = true,
 ) {
   def !(msg: WebSocketsMessage): Unit = websocket.foreach(_ ! msg)
+  def offline(): UserSessionContext = copy(online = false, websocket = None)
+}
+
+object UserSessionContext {
+  def online(
+    userId: UserId,
+    username: String,
+    locale: String,
+    websocket: ActorRef[WebSocketsMessage],
+  ): UserSessionContext = UserSessionContext(
+    userId,
+    username,
+    new Locale.Builder().setLanguageTag(locale).build(),
+    websocket.some,
+  )
 }

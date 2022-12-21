@@ -9,7 +9,6 @@ import akka.stream.FlowShape
 import akka.stream.scaladsl._
 import akka.stream.typed.scaladsl.ActorSink
 import akka.util.Timeout
-import cats.implicits.catsSyntaxOptionId
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
@@ -27,8 +26,7 @@ import scala.concurrent.duration._
 
 
 class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem[SpawnProtocol.Command]) {
-  private val conferenceSessionName = s"conference-session:$conferenceId"
-  system.log.info(s"Spawning '$conferenceSessionName'")
+  private val conferenceSessionName = s"conference-session@$conferenceId"
 
   private implicit val timeout: Timeout = Timeout(3.seconds)
   private implicit val ec = system.dispatchers.lookup(DispatcherSelector.default())
@@ -37,7 +35,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
   private[this] val sessionActor: Future[ActorRef[ConferenceEngineMessage]] =
     system.ask[ActorRef[ConferenceEngineMessage]] { ref =>
       Spawn[ConferenceEngineMessage](
-        behavior = ConferenceEngineActor.receive(conferenceId),
+        behavior = ConferenceEngineActor(conferenceId),
         name = conferenceSessionName,
         props = Props.empty,
         replyTo = ref
@@ -45,7 +43,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
     }
 
   // because we have access to an actor in the future, we also only have access to this Flow in the future
-  def webflow(userId: UserId): Future[Flow[Message, Message, _]]  = sessionActor.map { session =>
+  def webflow(userId: UserId, username: String, locale: String): Future[Flow[Message, Message, _]]  = sessionActor.map { session =>
     Flow.fromGraph(
       // passing parameters allows us to instantiate them as stream resource inside the stream
       GraphDSL.createGraph(WebSocketActor.source) { implicit builder => socket =>
@@ -67,7 +65,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
         val webSocketSink = builder.add(
           Flow[WebSocketsMessage].collect {
             case r: WebSocketResponse =>
-              implicit val chatTypeDecoder: Encoder[ChatType] = Encoder.encodeEnumeration(ChatTypes)
+              implicit val chatTypeEncoder: Encoder[ChatType] = Encoder.encodeEnumeration(ChatTypes)
               implicit val configuration: Configuration = Configuration.default.withDiscriminator("type")
               implicit val encoder: Encoder[WebSocketResponse] = deriveConfiguredEncoder[WebSocketResponse]
               TextMessage(r.asJson.noSpaces)
@@ -83,7 +81,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
 
         // materialize the Source we supplied in the argument
         val materializedActorSource =
-          builder.materializedValue.map(ref => Connected(UserSessionContext(userId, ref.some)))
+          builder.materializedValue.map(ref => Connected(UserSessionContext.online(userId, username, locale, ref)))
 
         // fan-in - combine two sources into one
         val merge = builder.add(Merge[ConferenceEngineMessage](2))

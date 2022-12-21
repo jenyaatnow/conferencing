@@ -4,16 +4,14 @@ package ws
 import akka.actor.typed.{ActorSystem, SpawnProtocol}
 import com.bravewave.conferencing.conf.shared.ConferenceId
 
+import java.util.concurrent.ConcurrentHashMap
+
 object ConferenceSessionMap {
 
-  private var sessions: Map[ConferenceId, ConferenceSession] = Map.empty[ConferenceId, ConferenceSession]
+  private val sessions: ConcurrentHashMap[ConferenceId, ConferenceSession] = new ConcurrentHashMap()
 
   def findOrCreate(conferenceId: ConferenceId)(implicit system: ActorSystem[SpawnProtocol.Command]): ConferenceSession =
-    sessions.getOrElse(conferenceId, create(conferenceId))
+    sessions.computeIfAbsent(conferenceId, ConferenceSession.apply)
 
-  private def create(conferenceId: ConferenceId)(implicit system: ActorSystem[SpawnProtocol.Command]) = {
-    val session = ConferenceSession(conferenceId)
-    sessions += conferenceId -> session
-    session
-  }
+  def remove(conferenceId: ConferenceId): Unit = sessions.remove(conferenceId)
 }

@@ -15,9 +15,9 @@ object ConfEngineServer extends App with CorsHandler {
 
   private def router =
     pathPrefix("conference" / Segment) { conferenceId =>
-      parameter("userId") { userId =>
+      parameter("userId", "username", "locale") { (userId, username, locale) =>
         // await on the webflow materialization pending session actor creation by the spawnSystem
-        Await.ready(ConferenceSessionMap.findOrCreate(conferenceId).webflow(userId), Duration.Inf).value.get match {
+        Await.ready(ConferenceSessionMap.findOrCreate(conferenceId).webflow(userId, username, locale), Duration.Inf).value.get match {
           case Success(flow) => handleWebSocketMessages(flow)
           case Failure(exception) =>
             actorSystem.log.error(exception.getMessage)

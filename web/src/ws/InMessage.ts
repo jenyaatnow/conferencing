@@ -1,12 +1,14 @@
 import {List} from 'immutable'
 import {UserId} from '../users'
 import {ChatMessage} from '../chat'
+import {Moment} from 'moment'
 
 export const InMessageTypes = {
   UserConnected: 'UserConnected',
   UserDisconnected: 'UserDisconnected',
   ConferenceDetails: 'ConferenceDetails',
   ChatMessages: 'ChatMessages',
+  ErrorWsMessage: 'Error',
 }
 
 export type InMessageType =
@@ -14,6 +16,7 @@ export type InMessageType =
   | typeof InMessageTypes.UserDisconnected
   | typeof InMessageTypes.ConferenceDetails
   | typeof InMessageTypes.ChatMessages
+  | typeof InMessageTypes.ErrorWsMessage
 
 
 export interface InMessage {
@@ -40,4 +43,9 @@ export interface UserDisconnected extends InMessage {
 
 export interface ChatMessages extends InMessage {
   messages: List<ChatMessage>
+}
+
+export interface ErrorWsMessage extends InMessage {
+  message: string
+  timestamp: Moment
 }

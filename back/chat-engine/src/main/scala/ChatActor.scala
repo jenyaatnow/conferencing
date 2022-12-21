@@ -13,7 +13,7 @@ import java.time.Instant
 object ChatActor {
 
   def apply(chatId: ChatId): Behavior[ChatActorProtocol] = Behaviors.setup { ctx =>
-    ctx.log.info(s"Spawned new chat [id='$chatId']")
+    ctx.log.info(s"Starting chat [id='$chatId']")
     ChatActor(State(chatId))
   }
 
@@ -38,7 +38,7 @@ object ChatActor {
     case _ => Behaviors.same
   }.receiveSignal {
     case (ctx, PostStop) =>
-      ctx.log.info(s"Chat [id='${state.chatId}'] is stopped")
+      ctx.log.info(s"Finishing chat [id='${state.chatId}']")
       Behaviors.same
   }
 

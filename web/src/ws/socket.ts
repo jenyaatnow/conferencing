@@ -1,48 +1,79 @@
-import {ChatMessages, ConferenceDetails, InMessage, InMessageTypes, UserConnected, UserDisconnected} from './InMessage'
-import {handleUserConnected, handleUserDisconnected} from '../users'
-import {loginFx} from '../auth'
+import {
+  ChatMessages,
+  ConferenceDetails,
+  ErrorWsMessage,
+  InMessage,
+  InMessageTypes,
+  UserConnected,
+  UserDisconnected
+} from './InMessage'
+import {handleUserConnected, handleUserDisconnected, UserId} from '../users'
 import {handleChatMessages} from '../chat'
-import {handleConferenceDetails} from '../conference'
+import {ConferenceId, handleConferenceDetails} from '../conference'
+import {handleError} from '../error'
+import {identity, userLocale} from '../utils'
+import {createEffect, createStore} from 'effector'
 
-const confId = prompt("Conference ID")
-const userId = prompt("User ID")
-loginFx(userId || "")
-
-export const WS = new WebSocket(`ws://0.0.0.0:8080/conference/${confId}?userId=${userId}`)
-
-WS.onmessage = msg => {
-  console.log('Got message', msg.data)
-
-  const message = JSON.parse(msg.data) as InMessage
-  switch (message.type) {
-    case InMessageTypes.ConferenceDetails:
-      handleConferenceDetails(message as ConferenceDetails)
-      break
-
-    case InMessageTypes.UserConnected:
-      handleUserConnected(message as UserConnected)
-      break
-
-    case InMessageTypes.UserDisconnected:
-      handleUserDisconnected(message as UserDisconnected)
-      break
-
-    case InMessageTypes.ChatMessages:
-      handleChatMessages(message as ChatMessages)
-      break
-
-    default: break
-  }
+interface WsConnectArgs {
+  confId: ConferenceId
+  userId: UserId
+  username: string
 }
 
-WS.onerror = error => {
-  console.log('Got error', JSON.stringify(error))
-}
+export const wsConnectFx = createEffect((args: WsConnectArgs) => {
+  return new WebSocket(`ws://0.0.0.0:8080/conference/${args.confId}?userId=${args.userId}&username=${args.username}&locale=${userLocale}`)
+})
 
+export const wsSendFx = createEffect(identity<any>)
 
-export const send = (msg: any): void => {
-  if (WS.readyState === 1) {
-    console.log('Send message', JSON.stringify(msg))
-    WS.send(JSON.stringify(msg))
-  }
-}
+const $ws = createStore<WebSocket | null>(null)
+  .on(
+    wsSendFx.doneData,
+    (ws, payload) => {
+      if (ws && ws.readyState === 1) {
+        console.log('Send message', JSON.stringify(payload))
+        ws.send(JSON.stringify(payload))
+      }
+
+      return ws
+    }
+  )
+  .on(
+    wsConnectFx.doneData,
+    (_, ws) => {
+      ws.onmessage = msg => {
+        console.log('Got message', msg.data)
+
+        const message = JSON.parse(msg.data) as InMessage
+        switch (message.type) {
+          case InMessageTypes.ConferenceDetails:
+            handleConferenceDetails(message as ConferenceDetails)
+            break
+
+          case InMessageTypes.UserConnected:
+            handleUserConnected(message as UserConnected)
+            break
+
+          case InMessageTypes.UserDisconnected:
+            handleUserDisconnected(message as UserDisconnected)
+            break
+
+          case InMessageTypes.ChatMessages:
+            handleChatMessages(message as ChatMessages)
+            break
+
+          case InMessageTypes.ErrorWsMessage:
+            handleError(message as ErrorWsMessage)
+            break
+
+          default: break
+        }
+      }
+
+      ws.onerror = error => {
+        console.log('Got error', JSON.stringify(error))
+      }
+
+      return ws
+    }
+  )

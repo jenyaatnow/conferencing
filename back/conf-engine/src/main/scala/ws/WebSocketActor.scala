@@ -30,6 +30,7 @@ object WebSocketActor {
     final case class Failure(ex: Throwable) extends WebSocketsMessage
 
     sealed trait WebSocketResponse extends WebSocketsMessage
+    final case class Error(message: String, timestamp: ZonedDateTime = ZonedDateTime.now()) extends WebSocketResponse
     final case class UserConnected(userId: UserId, username: String) extends WebSocketResponse
     final case class UserDisconnected(userId: UserId) extends WebSocketResponse
     final case class ConferenceDetails(users: Set[UserConnectionDetails], chatMessages: Seq[Message]) extends WebSocketResponse

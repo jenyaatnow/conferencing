@@ -1,23 +1,18 @@
 import React from 'react'
-import {WS} from './ws'
-import {ChatComponent, ChatTypes} from './chat'
-import {Grid} from '@mui/material'
-import {MainViewport} from './video/MainViewport'
-import {GlobalIndent} from './globalStyles'
+import {$currentUserStore, AuthPage} from './auth'
+import {UserOrigin} from './users'
+import {ConferencePage} from './conference'
+import {useStore} from 'effector-react'
+import {ErrorNotification} from './error'
 
 function App() {
-  const ws = WS
+  const authUser = useStore($currentUserStore)
+  const isAlien = authUser.origin === UserOrigin.ALIEN
 
-  return (
-    <Grid container spacing={GlobalIndent} sx={{padding: GlobalIndent, height: `${100-GlobalIndent}vh`, maxHeight: `${100-GlobalIndent}vh`}}>
-      <Grid item xs={9} sx={{height: '100%'}}>
-        <MainViewport/>
-      </Grid>
-      <Grid item xs={3} sx={{height: '100%'}}>
-        <ChatComponent chatType={ChatTypes.Conf}/>
-      </Grid>
-    </Grid>
-  );
+  return <>
+    <ErrorNotification/>
+    {isAlien ? <AuthPage/> : <ConferencePage/>}
+  </>
 }
 
 export default App

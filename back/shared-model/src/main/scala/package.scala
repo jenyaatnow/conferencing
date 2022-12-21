@@ -9,4 +9,6 @@ package object shared {
     type ChatType = Value
     val conf, dm = Value
   }
+
+  final case class User(userId: UserId, username: String)
 }

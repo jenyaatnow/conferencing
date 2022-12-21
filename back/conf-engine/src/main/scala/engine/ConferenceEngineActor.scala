@@ -5,9 +5,11 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import com.bravewave.conferencing.chatgrpc.gen.{GetChatMessagesReq, KillConfChatsReq, SendMessageReq}
 import com.bravewave.conferencing.client.ChatEngineClient
+import com.bravewave.conferencing.conf.MessageProvider.Keys
 import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
 import com.bravewave.conferencing.conf.shared.{ChatTypes, ConferenceId, UserId}
+import com.bravewave.conferencing.conf.ws.ConferenceSessionMap
 import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import com.bravewave.conferencing.conversions._
 
@@ -16,9 +18,14 @@ import scala.util.Success
 
 object ConferenceEngineActor {
 
-  def receive(
+  def apply(conferenceId: ConferenceId): Behavior[ConferenceEngineMessage] = Behaviors.setup { ctx =>
+    ctx.log.info(s"Starting conference [id='$conferenceId']")
+    ConferenceEngineActor(conferenceId, ConferenceState.empty)
+  }
+
+  private def apply(
     conferenceId: ConferenceId,
-    state: ConferenceState = ConferenceState.empty,
+    state: ConferenceState,
   ): Behavior[ConferenceEngineMessage] = Behaviors.receive { (ctx, msg) =>
     implicit val system = ctx.system
     implicit val ec = system.executionContext
@@ -26,29 +33,40 @@ object ConferenceEngineActor {
 
     msg match {
       case Connected(newUserContext) =>
-        // todo forbid users to connect multiple times
         val newUserId = newUserContext.userId
-        ctx.log.info(s"User '$newUserId' connected to conference '$conferenceId'")
 
-        val newState = state connect newUserContext
-        chatEngineClient.getChatMessages(GetChatMessagesReq(conferenceId, ChatTypes.conf.toString, newUserId, None))
-          .foreach { res =>
-            val confMembers = // todo find real usernames somewhere
-              newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.userId, ctx.online)).toSet
-            newState !> (newUserId, ConferenceDetails(confMembers, res.messages.map(Message.apply)))
-          }
-        newState !- (newUserId, UserConnected(newUserId, newUserId))
-        receive(conferenceId, newState)
+        if (state has newUserId) {
+          ctx.log.error(s"User [id='$newUserId'] is already connected to conference [id='$conferenceId']")
+          newUserContext.websocket
+            .foreach(_ ! Error(MessageProvider.getMessage(newUserContext.locale, Keys.MultipleSimultaneousConnection)))
+          Behaviors.same
+        } else {
+          ctx.log.info(s"User [id='$newUserId'] connected to conference [id='$conferenceId']")
+          val newState = state connect newUserContext
+          chatEngineClient.getChatMessages(GetChatMessagesReq(conferenceId, ChatTypes.conf.toString, newUserId, None))
+            .foreach { res =>
+              val confMembers =
+                newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.username, ctx.online)).toSet
+              newState !> (newUserId, ConferenceDetails(confMembers, res.messages.map(Message.apply)))
+            }
+          newState !- (newUserId, UserConnected(newUserId, newUserId))
+          ConferenceEngineActor(conferenceId, newState)
+        }
 
       case Disconnected(userId) =>
-        // todo should clean session storage on last user
-        ctx.log.info(s"User '$userId' disconnected from conference '$conferenceId'")
+        ctx.log.info(s"User [id='$userId'] disconnected from conference [id='$conferenceId']")
 
         state !> (userId, Complete)
         state !- (userId, UserDisconnected(userId))
         val newState = state disconnect userId
-        if (newState.hasNoUsers) chatEngineClient.killConfChats(KillConfChatsReq(conferenceId))
-        receive(conferenceId, newState)
+        if (newState.hasNoUsers) {
+          ctx.log.info(s"Finishing conference [id='$conferenceId']")
+          chatEngineClient.killConfChats(KillConfChatsReq(conferenceId))
+          ConferenceSessionMap.remove(conferenceId)
+          Behaviors.stopped
+        } else {
+          ConferenceEngineActor(conferenceId, newState)
+        }
 
       case ChatMessageReceived(id, chatType, from, to, text) =>
         chatEngineClient.sendMessage(SendMessageReq(Some(id), conferenceId, chatType.toString, from, to, text))
