@@ -49,7 +49,7 @@ object ConferenceEngineActor {
                 newState.userContexts.values.map(ctx => UserConnectionDetails(ctx.userId, ctx.username, ctx.online)).toSet
               newState !> (newUserId, ConferenceDetails(confMembers, res.messages.map(Message.apply)))
             }
-          newState !- (newUserId, UserConnected(newUserId, newUserId))
+          newState !- (newUserId, UserConnected(newUserId, newUserContext.username))
           ConferenceEngineActor(conferenceId, newState)
         }
 

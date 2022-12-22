@@ -6,15 +6,17 @@ import {ChatComponent, ChatTypes} from '../chat'
 import React from 'react'
 import {useStore} from 'effector-react'
 import {$currentUserStore} from '../auth'
+import {useParams} from 'react-router-dom'
+import {ConferenceId} from './model'
 
 let shit = true
 
 export const ConferencePage = () => {
   const authUser = useStore($currentUserStore)
+  const {conferenceId} = useParams()
 
   if (shit) { // todo fix this shit; useEffect calls twice
-    // todo obtain conf id from url
-    wsConnectFx({confId: '1', userId: authUser.id, username: authUser.username})
+    wsConnectFx({confId: conferenceId as ConferenceId, userId: authUser.id, username: authUser.username})
     shit = false
   }
 
