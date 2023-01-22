@@ -3,12 +3,14 @@ package engine
 
 import akka.actor.typed.ActorRef
 import cats.implicits.catsSyntaxOptionId
-import com.bravewave.conferencing.conf.shared.UserId
-import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol.WebSocketsMessage
+import com.bravewave.conferencing.conf.protocol.WebSocketsMessage
+import com.bravewave.conferencing.conf.shared.{ConferenceId, UserId}
 
 import java.util.Locale
 
 final case class ConferenceState(
+  conferenceId: ConferenceId,
+  ownerId: Option[UserId] = None,
   userContexts: Map[UserId, UserSessionContext] = Map.empty,
 ) {
 
@@ -27,24 +29,32 @@ final case class ConferenceState(
   /**
    * Notify all users except user with the given id.
    */
-  def !-(userId: UserId, msg: WebSocketsMessage): Unit =
-    userContexts.values.filterNot(_.userId == userId).foreach(_ ! msg)
+  def !<(payload: (UserId, WebSocketsMessage)): Unit =
+    userContexts.values.filterNot(_.userId == payload._1).foreach(_ ! payload._2)
 
   /**
    * Notify user with the given id.
    */
-  def !>(userId: UserId, msg: WebSocketsMessage): Unit =
-    userContexts.get(userId).foreach(_ ! msg)
+  def !>(payload: (UserId, WebSocketsMessage)): Unit =
+    userContexts.get(payload._1).foreach(_ ! payload._2)
+
+  /**
+   * Notify owner.
+   */
+  def !>@(msg: WebSocketsMessage): Unit =
+    ownerId.flatMap(userContexts.get).foreach(_ ! msg)
+
+  /**
+   * Notify all users except owner.
+   */
+  def !<@(msg: WebSocketsMessage): Unit =
+    ownerId.map(oid => userContexts.values.filterNot(_.userId == oid)).getOrElse(Nil).foreach(_ ! msg)
 
   def hasNoUsers: Boolean =
     userContexts.forall(context => !context._2.online)
 
   def has(userId: UserId): Boolean =
     userContexts.exists(_._1 == userId)
-}
-
-object ConferenceState {
-  def empty: ConferenceState = ConferenceState()
 }
 
 

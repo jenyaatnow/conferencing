@@ -9,11 +9,10 @@ import akka.stream.FlowShape
 import akka.stream.scaladsl._
 import akka.stream.typed.scaladsl.ActorSink
 import akka.util.Timeout
-import com.bravewave.conferencing.conf.engine.ConferenceEngineActor.protocol._
 import com.bravewave.conferencing.conf.engine.{ConferenceEngineActor, UserSessionContext}
+import com.bravewave.conferencing.conf.protocol._
 import com.bravewave.conferencing.conf.shared.ChatTypes.ChatType
 import com.bravewave.conferencing.conf.shared.{ChatTypes, ConferenceId, UserId}
-import com.bravewave.conferencing.conf.ws.WebSocketActor.protocol._
 import io.circe._
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.auto._
@@ -26,17 +25,16 @@ import scala.concurrent.duration._
 
 
 class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem[SpawnProtocol.Command]) {
-  private val conferenceSessionName = s"conference-session@$conferenceId"
 
   private implicit val timeout: Timeout = Timeout(3.seconds)
   private implicit val ec = system.dispatchers.lookup(DispatcherSelector.default())
 
   // asks to spawn an actor outside of the system
-  private[this] val sessionActor: Future[ActorRef[ConferenceEngineMessage]] =
-    system.ask[ActorRef[ConferenceEngineMessage]] { ref =>
-      Spawn[ConferenceEngineMessage](
+  private[this] val sessionActor: Future[ActorRef[ConferenceEngineProtocol]] =
+    system.ask[ActorRef[ConferenceEngineProtocol]] { ref =>
+      Spawn[ConferenceEngineProtocol](
         behavior = ConferenceEngineActor(conferenceId),
-        name = conferenceSessionName,
+        name = ConferenceEngineActor.name(conferenceId),
         props = Props.empty,
         replyTo = ref
       )
@@ -56,8 +54,10 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
             case TextMessage.Strict(json) =>
               implicit val chatTypeDecoder: Decoder[ChatType] = Decoder.decodeEnumeration(ChatTypes)
               implicit val configuration: Configuration = Configuration.default.withDiscriminator("type")
-              implicit val decoder: Decoder[ExternalConferenceEngineMessage] = deriveConfiguredDecoder[ExternalConferenceEngineMessage]
-              decode[ExternalConferenceEngineMessage](json).getOrElse(Failed(new RuntimeException(s"Unable to parse incoming message:\n$json")))
+              implicit val decoder: Decoder[ExternalConferenceEngineProtocol] = deriveConfiguredDecoder[ExternalConferenceEngineProtocol]
+              decode[ExternalConferenceEngineProtocol](json)
+                .map(_.withSenderId(userId))
+                .getOrElse(Failed(new RuntimeException(s"Unable to parse incoming message:\n$json")))
           }
         )
 
@@ -73,7 +73,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
         )
 
         // route messages to the session actor
-        val routeToSession = builder.add(ActorSink.actorRef[ConferenceEngineMessage](
+        val routeToSession = builder.add(ActorSink.actorRef[ConferenceEngineProtocol](
           ref = session,
           onCompleteMessage = Disconnected(userId),
           onFailureMessage = Failed.apply
@@ -84,7 +84,7 @@ class ConferenceSession(conferenceId: ConferenceId)(implicit system: ActorSystem
           builder.materializedValue.map(ref => Connected(UserSessionContext.online(userId, username, locale, ref)))
 
         // fan-in - combine two sources into one
-        val merge = builder.add(Merge[ConferenceEngineMessage](2))
+        val merge = builder.add(Merge[ConferenceEngineProtocol](2))
         // ~> connects everything
         webSocketSource ~> merge.in(0)
         materializedActorSource ~> merge.in(1)

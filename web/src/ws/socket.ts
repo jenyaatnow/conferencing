@@ -3,6 +3,7 @@ import {
   ConferenceDetails,
   ErrorWsMessage,
   InMessage,
+  InMessageType,
   InMessageTypes,
   UserConnected,
   UserDisconnected
@@ -20,13 +21,33 @@ interface WsConnectArgs {
   username: string
 }
 
+interface AddHandlerArgs {
+  type: InMessageType
+  handler: (msg: InMessage) => void
+}
+
 export const wsConnectFx = createEffect((args: WsConnectArgs) => {
   return new WebSocket(`ws://0.0.0.0:8080/conference/${args.confId}?userId=${args.userId}&username=${args.username}&locale=${userLocale}`)
 })
 
 export const wsSendFx = createEffect(identity<any>)
 
-const $ws = createStore<WebSocket | null>(null)
+export const addHandlerFx = createEffect((args: AddHandlerArgs) => args)
+
+createStore<WebSocket | null>(null)
+  .on(
+    addHandlerFx.doneData,
+    (ws, {type, handler}) => {
+      const newHandler = (msg: MessageEvent<InMessage>) => {
+        if (msg.type === type) handler(msg)
+        ws?.onmessage!(msg)
+      }
+
+      if (ws) ws.onmessage = newHandler
+
+      return ws
+    }
+  )
   .on(
     wsSendFx.doneData,
     (ws, payload) => {

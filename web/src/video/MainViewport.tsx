@@ -1,10 +1,21 @@
-import {Paper} from '@mui/material'
-import {GlobalIndent} from '../globalStyles'
+import {MutableRefObject, useRef} from 'react'
+import {getLocalStream} from '../media'
+import {offer} from '../webrtc'
 
 export const MainViewport = () => {
+  const localVideo = useRef() as MutableRefObject<HTMLVideoElement>
+  getLocalStream().then(localStream => {
+    localVideo.current.srcObject = localStream
+    offer(localStream)
+  })
+
   return (
-    <Paper variant={'outlined'} sx={{padding: GlobalIndent, height: '100%'}}>
-      <div style={{background: 'grey', width: '100%', height: '100%'}}></div>
-    </Paper>
+    <div>
+      <video style={{width: '50vh', height: '50vh'}}
+             ref={localVideo}
+             autoPlay
+             muted
+      />
+    </div>
   )
 }

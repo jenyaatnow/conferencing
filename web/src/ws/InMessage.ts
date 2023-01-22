@@ -9,6 +9,8 @@ export const InMessageTypes = {
   ConferenceDetails: 'ConferenceDetails',
   ChatMessages: 'ChatMessages',
   ErrorWsMessage: 'Error',
+  WebRtcOffer: 'WebRtcOffer',
+  WebRtcAnswer: 'WebRtcAnswer',
 }
 
 export type InMessageType =
@@ -17,6 +19,8 @@ export type InMessageType =
   | typeof InMessageTypes.ConferenceDetails
   | typeof InMessageTypes.ChatMessages
   | typeof InMessageTypes.ErrorWsMessage
+  | typeof InMessageTypes.WebRtcOffer
+  | typeof InMessageTypes.WebRtcAnswer
 
 
 export interface InMessage {
@@ -48,4 +52,12 @@ export interface ChatMessages extends InMessage {
 export interface ErrorWsMessage extends InMessage {
   message: string
   timestamp: Moment
+}
+
+export interface WebRtcOffer extends InMessage {
+  offer: RTCSessionDescriptionInit,
+}
+
+export interface WebRtcAnswer extends InMessage {
+  answer: RTCSessionDescriptionInit
 }

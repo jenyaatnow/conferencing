@@ -11,9 +11,11 @@ import com.google.protobuf.timestamp.Timestamp
 import java.time.Instant
 
 object ChatActor {
+  def name(chatId: ChatId) = s"chat@$chatId"
+  private def logPrefix(chatId: ChatId) = s"[${name(chatId)}]"
 
   def apply(chatId: ChatId): Behavior[ChatActorProtocol] = Behaviors.setup { ctx =>
-    ctx.log.info(s"Starting chat [id='$chatId']")
+    ctx.log.info(s"${logPrefix(chatId)} Start")
     ChatActor(State(chatId))
   }
 
@@ -38,7 +40,7 @@ object ChatActor {
     case _ => Behaviors.same
   }.receiveSignal {
     case (ctx, PostStop) =>
-      ctx.log.info(s"Finishing chat [id='${state.chatId}']")
+      ctx.log.info(s"${logPrefix(state.chatId)} Finish")
       Behaviors.same
   }
 
